@@ -10,53 +10,35 @@ const errorHandler = require("./middlewares/error.middleware");
 
 const app = express();
 
-// CORS config
-const allowedOrigins = [
-  "http://localhost:5173", // frontend local Vite
-  "http://localhost:3000", // si tu testes avec Next
-  "https://cick-back.onrender.com", // backend lui-même, optionnel
-  // ajoute ici ton vrai frontend déployé plus tard
-  // "https://ton-frontend.onrender.com",
-];
-
+/* CORS must be BEFORE all routes */
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Autorise Postman, Render health checks, etc. sans origin
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Important for preflight requests
-app.options("*", cors());
+/* Preflight requests */
+app.options(/.*/, cors());
 
 app.use(express.json());
 
-// Static images
+/* Static images */
 app.use("/images", express.static("public/images"));
 
-// Routes
+/* Routes */
 app.use("/api/contact", contactRoutes);
 app.use("/api/projects", projectRoutes);
 
-// Health check
+/* Health check */
 app.get("/", (req, res) => {
   res.send("CICK API is running");
 });
 
-// Error handler
+/* Error handler */
 app.use(errorHandler);
 
-// Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
